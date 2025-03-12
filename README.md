@@ -26,6 +26,12 @@ or
 yarn add sveltekit-routes-helper --dev
 ```
 
+or prefer using pnpm:
+
+```bash
+pnpm add -D sveltekit-routes-helper 
+```
+
 ## Usage
 
 ### As a Vite Plugin
@@ -55,7 +61,7 @@ You can also manually trigger route generation with the provided CLI command. In
 ```json
 {
   "scripts": {
-    "generate-routes": "route-generator"
+    "generate-routes": "sveltekit-routes-helper"
   }
 }
 ```
