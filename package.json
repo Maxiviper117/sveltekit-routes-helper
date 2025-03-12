@@ -2,13 +2,23 @@
     "name": "sveltekit-routes-helper",
     "version": "0.1.0",
     "description": "A tool to help generate and manage routes in SvelteKit applications",
-    "main": "dist/index.js",
-    "types": "dist/index.d.ts",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+        ".": {
+            "import": "./dist/index.js",
+            "types": "./dist/index.d.ts"
+        }
+    },
+    "files": [
+        "dist",
+        "bin"
+    ],
     "bin": {
         "route-generator": "./bin/cli.js"
     },
     "scripts": {
-        "generate-routes": "route-generator",
+        "generate-routes": "node ./bin/cli.js",
         "build:types": "tsc",
         "build:js": "tsc --emitDeclarationOnly false --outDir dist",
         "build": "npm run build:types && npm run build:js",
