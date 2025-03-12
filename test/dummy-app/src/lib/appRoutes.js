@@ -1,25 +1,40 @@
 // This file is auto-generated. Do not edit manually.
 /**
- * @typedef {"/about" | "/" | "/blog/:id"} AppRoute
+ * @typedef {"/about" | "/" | "/blog/[id]" | "/user/[id]/post/[post_id]"} AppRoute
  */
 
 /**
  * Generate a URL by replacing dynamic segments in the given route with provided parameters.
  *
- * This helper function takes a type-safe route (AppRoute) and positional parameters that correspond
- * to dynamic segments in the route (segments prefixed with ':'). It replaces each dynamic segment
- * with the corresponding parameter and returns the final URL.
- *
  * @param {AppRoute} route - The route string containing dynamic segments.
- * @param {...string} params - Replacement values for the dynamic segments.
+ * @param {string[] | Object.<string, string>} [params] - Either an array of values for positional replacement,
+ *                                                        or an object with keys matching parameter names.
  * @returns {string} The URL with dynamic segments replaced by the provided parameters.
- * @throws {Error} Will throw an error if the number of parameters does not match the number of dynamic segments.
+ * @throws {Error} Will throw an error if parameters are missing or invalid.
  */
-export function routes(route, ...params) {
-  const placeholders = (route.match(/:([^/]+)/g) || []).length;
-  if (params.length !== placeholders) {
-    throw new Error(`Expected ${placeholders} parameter${placeholders !== 1 ? 's' : ''} for route "${route}", but got ${params.length}.`);
+export function routes(route, params) {
+  const segments = route.match(/[([^]]+)]/g) || [];
+  
+  if (Array.isArray(params)) {
+    if (params.length !== segments.length) {
+      throw new Error(`Expected ${segments.length} parameter${segments.length !== 1 ? 's' : ''} for route "${route}", but got ${params.length}.`);
+    }
+    let index = 0;
+    return route.replace(/[([^]]+)]/g, () => params[index++]);
   }
-  let index = 0;
-  return route.replace(/:([^/]+)/g, () => params[index++]);
+  
+  if (params) {
+    return route.replace(/[([^]]+)]/g, (_, key) => {
+      if (!(key in params)) {
+        throw new Error(`Missing parameter "${key}" for route "${route}"`);
+      }
+      return params[key];
+    });
+  }
+  
+  if (segments.length > 0) {
+    throw new Error(`Route "${route}" requires parameters but none were provided`);
+  }
+  
+  return route;
 }

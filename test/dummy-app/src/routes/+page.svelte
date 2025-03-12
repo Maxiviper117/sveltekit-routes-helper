@@ -1,7 +1,10 @@
-<script>
+<script lang="ts">
     import { routes } from "../lib/appRoutes.js";
 
-	routes('/about')
+    const url1 = routes('/user/[id]/post/[post_id]', { 
+        id: "1",
+        post_id: "2"
+     });
 </script>
 
 <main>
