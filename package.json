@@ -17,11 +17,11 @@
         "LICENSE"
     ],
     "bin": {
-        "sveltekit-routes-generate": "./dist/cli.js"
+        "sveltekit-routes-generate": "./bin/cli.js"
     },
     "scripts": {
         "sveltekit-routes-generate": "node ./bin/cli.js",
-        "build": "tsc",
+        "build": "tsc && chmod +x ./bin/cli.js",
         "prepublishOnly": "npm run build",
         "changeset": "changeset",
         "changeset:add": "changeset add",
