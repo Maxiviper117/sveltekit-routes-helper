@@ -1,20 +1,35 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
-    "module": "ESNext",
-    "moduleResolution": "node",
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "strict": true,
     "declaration": true,
-    "emitDeclarationOnly": false,
-    "outDir": "./dist",
-    "rootDir": "./src",
-    "skipLibCheck": true,
+    // Enable latest features
+    "lib": [
+      "ESNext",
+      "DOM"
+    ],
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleDetection": "force",
+    "jsx": "react-jsx",
     "allowJs": true,
-    "checkJs": true,
-    "types": ["node"]
+    "outDir": "dist",
+    // Bundler mode
+    "moduleResolution": "bundler",
+    // "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "noEmit": false, // Ensure this is set to false
+    // Best practices
+    "strict": true,
+    "skipLibCheck": true,
+    "noFallthroughCasesInSwitch": true,
+    // Some stricter flags (disabled by default)
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noPropertyAccessFromIndexSignature": false
   },
-  "include": ["src/**/*.ts", "src/**/*.js"],
-  "exclude": ["node_modules", "dist", "test"]
+  "include": [
+    "src/**/*.ts"
+  ], // Include all .ts files in src/
+  "exclude": [
+    "node_modules"
+  ] // Exclude dependencies
 }

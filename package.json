@@ -12,14 +12,16 @@
     },
     "files": [
         "dist",
-        "bin"
+        "bin",
+        "README.md",
+        "LICENSE"
     ],
     "bin": {
-        "route-generator": "./bin/cli.js"
+        "route-generator": "./dist/index.js",
     },
     "scripts": {
         "generate-routes": "node ./bin/cli.js",
-        "build:types": "tsc --emitDeclarationOnly",
+        "build:types": "tsc",
         "build:js": "tsc --declaration false --outDir dist",
         "build": "npm run build:types && npm run build:js",
         "prepublishOnly": "npm run build"
