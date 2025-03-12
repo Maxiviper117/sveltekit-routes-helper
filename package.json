@@ -1,0 +1,12 @@
+{
+    "name": "sveltekit-routes-helper",
+    "version": "0.1.0",
+    "main": "src/index.js",
+    "bin": {
+        "route-generator": "./bin/cli.js"
+    },
+    "scripts": {
+        "generate-routes": "route-generator"
+    },
+    "type": "module"
+}
