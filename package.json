@@ -22,7 +22,12 @@
     "scripts": {
         "sveltekit-routes-generate": "node ./bin/cli.js",
         "build": "tsc",
-        "prepublishOnly": "npm run build"
+        "prepublishOnly": "npm run build",
+        "changeset": "changeset",
+        "changeset:add": "changeset add",
+        "changeset:version": "changeset version",
+        "changeset:publish": "changeset publish",
+        "changeset:status": "changeset status"
     },
     "type": "module",
     "repository": {
@@ -50,6 +55,7 @@
         "vite": "^4.0.0 || ^5.0.0"
     },
     "devDependencies": {
+        "@changesets/cli": "^2.28.1",
         "@types/node": "^22.13.10",
         "typescript": "^5.8.2",
         "vite": "^5.0.0"
