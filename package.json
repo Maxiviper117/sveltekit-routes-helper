@@ -17,7 +17,7 @@
         "LICENSE"
     ],
     "bin": {
-        "sveltekit-routes-generate": "./bin/cli.js"
+        "sveltekit-routes-generate": "bin/cli.js"
     },
     "scripts": {
         "sveltekit-routes-generate": "node ./bin/cli.js",
