@@ -6,6 +6,8 @@ const libDir = path.join(process.cwd(), "src", "lib");
 
 /**
  * Checks if a folder name is a grouping folder (wrapped in parentheses).
+ * @param {string} folderName - The name of the folder to check
+ * @returns {boolean} Whether the folder is a grouping folder
  */
 function isGroupingFolder(folderName) {
     return folderName.startsWith("(") && folderName.endsWith(")");
@@ -16,8 +18,13 @@ function isGroupingFolder(folderName) {
  *
  * - Dynamic segments in folder or file names (e.g. [id]) are replaced with placeholders (e.g. :id).
  * - Grouping folders (e.g. (group)) are ignored in the URL path.
+ * 
+ * @param {string} dir - The directory to traverse
+ * @param {string} currentPath - The current path being built
+ * @returns {string[]} Array of route strings
  */
 function traverseRoutes(dir, currentPath = "") {
+    /** @type {string[]} */
     let routes = [];
     const entries = fs.readdirSync(dir, { withFileTypes: true });
 
@@ -49,6 +56,7 @@ function traverseRoutes(dir, currentPath = "") {
             const newPath = segment
                 ? path.join(currentPath, segment)
                 : currentPath;
+            /** @type {string[]} */
             const nestedRoutes = traverseRoutes(fullPath, newPath);
             routes = routes.concat(nestedRoutes);
         }
@@ -165,10 +173,15 @@ export function routes(route, ...params) {
 
 /**
  * Vite plugin to auto-generate routes on file changes.
+ * @returns {import('vite').Plugin} A Vite plugin
  */
 function routeGeneratorPlugin() {
     return {
         name: "vite-route-generator",
+        /**
+         * Configure the development server
+         * @param {import('vite').ViteDevServer} server - The Vite dev server
+         */
         configureServer(server) {
             // This is kept for backward compatibility and robustness
             if (!fs.existsSync(libDir)) {

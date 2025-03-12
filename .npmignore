@@ -1,0 +1,21 @@
+# Development files
+.git/
+.github/
+node_modules/
+test/
+.gitignore
+*.log
+*.tgz
+
+# Editor configuration
+.vscode/
+.idea/
+.editorconfig
+
+# Source files (since we publish the compiled output)
+src/
+tsconfig.json
+
+# Coverage/test reports
+coverage/
+.nyc_output/

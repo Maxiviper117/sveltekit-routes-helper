@@ -1,5 +1,5 @@
 #!/usr/bin/env node
 
-import { generateRoutes } from "../src/index.js";
+import { generateRoutes } from "../dist/index.js";
 
 generateRoutes();

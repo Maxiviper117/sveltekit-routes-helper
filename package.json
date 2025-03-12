@@ -2,12 +2,17 @@
     "name": "sveltekit-routes-helper",
     "version": "0.1.0",
     "description": "A tool to help generate and manage routes in SvelteKit applications",
-    "main": "src/index.js",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
     "bin": {
         "route-generator": "./bin/cli.js"
     },
     "scripts": {
-        "generate-routes": "route-generator"
+        "generate-routes": "route-generator",
+        "build:types": "tsc",
+        "build:js": "tsc --emitDeclarationOnly false --outDir dist",
+        "build": "npm run build:types && npm run build:js",
+        "prepublishOnly": "npm run build"
     },
     "type": "module",
     "repository": {
@@ -30,5 +35,13 @@
     "homepage": "https://github.com/Maxiviper117/sveltekit-routes-helper#readme",
     "engines": {
         "node": ">=16.0.0"
+    },
+    "peerDependencies": {
+        "vite": "^4.0.0 || ^5.0.0"
+    },
+    "devDependencies": {
+        "@types/node": "^22.13.10",
+        "typescript": "^5.8.2",
+        "vite": "^5.0.0"
     }
 }
