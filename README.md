@@ -76,6 +76,47 @@ This will generate the route files according to your project type:
 - For TypeScript projects: a single `appRoutes.ts` file.
 - For JavaScript projects: both an `appRoutes.d.ts` file and an `appRoutes.js` file with JSDoc annotations.
 
+### Using the `routes` Helper Function
+
+The `routes` helper function allows you to generate URLs by replacing dynamic segments in the route with provided parameters. This function is type-safe and ensures that the number of parameters matches the number of dynamic segments in the route.
+
+#### TypeScript Example
+
+```typescript
+import { routes } from 'src/lib/appRoutes';
+const userUrl = routes('/admin/user/'); // type safe
+console.log(userUrl); // Output: "/admin/user/"
+```
+
+With slug:
+
+```typescript
+import { routes } from 'src/lib/appRoutes';
+
+const userId = '123';
+const userUrl = routes('/admin/user/:id', userid); // type safe
+console.log(userUrl); // Output: "/admin/user/123"
+```
+
+With multiple slugs:
+
+```typescript
+import { routes } from 'src/lib/appRoutes';
+
+const userId = '123';
+const postId = '456';
+const userPostUrl = routes('/admin/user/:id/post/:postId', userId, postId); // type safe
+console.log(userPostUrl); // Output: "/admin/user/123/post/456"
+```
+
+This is th routes helper signature:
+
+```typescript
+function routes(route: string, ...params: string[]): string;
+```
+
+The first argument is the `routes` route name which is type safe and the second argument is a rest parameter that accepts any number of string arguments. The function will return a string with the route name and the parameters replaced in the route. The number of parameters must match the number of dynamic segments/slugs in the route.
+
 ## API Overview
 
 ### `generateRoutes`
