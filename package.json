@@ -1,5 +1,5 @@
 {
-    "name": "@maxiviper117/sveltekit-routes-helper",
+    "name": "sveltekit-routes-helper",
     "version": "0.2.0",
     "description": "A tool to help generate and manage routes in SvelteKit applications",
     "main": "./dist/index.js",
