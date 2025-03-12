@@ -42,7 +42,7 @@ function traverseRoutes(dir: string, currentPath = ""): string[] {
                     currentPath
                         .split(path.sep)
                         .filter(Boolean)
-                        .map((segment) => segment.replace(/\[(.+?)\]/g, ":$1"))
+                        .map((segment) => segment.replace(/\[(.+?)\]/g, "[$1]"))
                         .join("/");
             }
             routes.push(route);
@@ -51,7 +51,7 @@ function traverseRoutes(dir: string, currentPath = ""): string[] {
             // If grouping folder, ignore its name in the URL.
             const segment = isGroupingFolder(folderName)
                 ? ""
-                : folderName.replace(/\[(.+?)\]/g, ":$1");
+                : folderName.replace(/\[(.+?)\]/g, "[$1]");
 
             const newPath = segment
                 ? path.join(currentPath, segment)
@@ -93,24 +93,56 @@ function generateRoutes(): void {
 export type AppRoute = ${unionType};
 
 /**
+ * Extract parameter names from a route string
+ */
+type ExtractRouteParams<T extends string> = T extends \`\${string}[\${infer Param}]\${infer Rest}\`
+  ? Param | ExtractRouteParams<Rest>
+  : never;
+
+/**
+ * Convert route parameters to an object type
+ */
+type RouteParamsObject<T extends string> = {
+  [K in ExtractRouteParams<T>]: string;
+};
+
+/**
  * Generate a URL by replacing dynamic segments in the given route with provided parameters.
  *
- * This helper function takes a type-safe route (AppRoute) and positional parameters that correspond
- * to dynamic segments in the route (segments prefixed with ':'). It replaces each dynamic segment
- * with the corresponding parameter and returns the final URL.
- *
- * @param {AppRoute} route - The route string containing dynamic segments.
- * @param {...string} params - Replacement values for the dynamic segments.
+ * @param {T} route - The route string containing dynamic segments.
+ * @param {string[] | RouteParamsObject<T>} params - Either an array of values for positional replacement,
+ *                                                  or an object with keys matching parameter names.
  * @returns {string} The URL with dynamic segments replaced by the provided parameters.
- * @throws Will throw an error if the number of parameters does not match the number of dynamic segments.
+ * @throws Will throw an error if parameters are missing or invalid.
  */
-export function routes(route: AppRoute, ...params: string[]): string {
-  const placeholders = (route.match(/:([^/]+)/g) || []).length;
-  if (params.length !== placeholders) {
-    throw new Error(\`Expected \${placeholders} parameter\${placeholders !== 1 ? 's' : ''} for route "\${route}", but got \${params.length}.\`);
+export function routes<T extends AppRoute>(
+  route: T,
+  params?: string[] | RouteParamsObject<T>
+): string {
+  const segments = route.match(/\[([^\]]+)\]/g) || [];
+  
+  if (Array.isArray(params)) {
+    if (params.length !== segments.length) {
+      throw new Error(\`Expected \${segments.length} parameter\${segments.length !== 1 ? 's' : ''} for route "\${route}", but got \${params.length}.\`);
+    }
+    let index = 0;
+    return route.replace(/\[([^\]]+)\]/g, () => params[index++]);
   }
-  let index = 0;
-  return route.replace(/:([^/]+)/g, () => params[index++]);
+  
+  if (params) {
+    return route.replace(/\[([^\]]+)\]/g, (_, key) => {
+      if (!(key in params)) {
+        throw new Error(\`Missing parameter "\${key}" for route "\${route}"\`);
+      }
+      return params[key];
+    });
+  }
+  
+  if (segments.length > 0) {
+    throw new Error(\`Route "\${route}" requires parameters but none were provided\`);
+  }
+  
+  return route;
 }
 `;
         fs.writeFileSync(outputPath, content, { encoding: "utf8" });
@@ -127,13 +159,28 @@ export function routes(route: AppRoute, ...params: string[]): string {
 export type AppRoute = ${unionType};
 
 /**
+ * Extract parameter names from a route string
+ */
+type ExtractRouteParams<T extends string> = T extends \`\${string}[\${infer Param}]\${infer Rest}\`
+  ? Param | ExtractRouteParams<Rest>
+  : never;
+
+/**
+ * Convert route parameters to an object type
+ */
+type RouteParamsObject<T extends string> = {
+  [K in ExtractRouteParams<T>]: string;
+};
+
+/**
  * Generate a URL by replacing dynamic segments in the given route with provided parameters.
  *
- * @param {AppRoute} route - The route string containing dynamic segments.
- * @param {...string} params - Replacement values for the dynamic segments.
- * @returns {string} The URL with dynamic segments replaced.
+ * @param {T} route - The route string containing dynamic segments.
+ * @param {string[] | RouteParamsObject<T>} params - Either an array of values for positional replacement,
+ *                                                  or an object with keys matching parameter names.
+ * @returns {string} The URL with dynamic segments replaced by the provided parameters.
  */
-export function routes(route: AppRoute, ...params: string[]): string;
+export function routes<T extends AppRoute>(route: T, params?: string[] | RouteParamsObject<T>): string;
 `;
         fs.writeFileSync(dtsOutputPath, dtsContent, { encoding: "utf8" });
 
@@ -145,24 +192,38 @@ export function routes(route: AppRoute, ...params: string[]): string;
 /**
  * Generate a URL by replacing dynamic segments in the given route with provided parameters.
  *
- * This helper function takes a type-safe route (AppRoute) and positional parameters that correspond
- * to dynamic segments in the route (segments prefixed with ':'). It replaces each dynamic segment
- * with the corresponding parameter and returns the final URL.
- *
  * @param {AppRoute} route - The route string containing dynamic segments.
- * @param {...string} params - Replacement values for the dynamic segments.
+ * @param {string[] | Object.<string, string>} [params] - Either an array of values for positional replacement,
+ *                                                        or an object with keys matching parameter names.
  * @returns {string} The URL with dynamic segments replaced by the provided parameters.
- * @throws {Error} Will throw an error if the number of parameters does not match the number of dynamic segments.
+ * @throws {Error} Will throw an error if parameters are missing or invalid.
  */
-export function routes(route, ...params) {
-  const placeholders = (route.match(/:([^/]+)/g) || []).length;
-  if (params.length !== placeholders) {
-    throw new Error(\`Expected \${placeholders} parameter\${placeholders !== 1 ? 's' : ''} for route "\${route}", but got \${params.length}.\`);
+export function routes(route, params) {
+  const segments = route.match(/\[([^\]]+)\]/g) || [];
+  
+  if (Array.isArray(params)) {
+    if (params.length !== segments.length) {
+      throw new Error(\`Expected \${segments.length} parameter\${segments.length !== 1 ? 's' : ''} for route "\${route}", but got \${params.length}.\`);
+    }
+    let index = 0;
+    return route.replace(/\[([^\]]+)\]/g, () => params[index++]);
   }
-  let index = 0;
-  return route.replace(/:([^/]+)/g, () => params[index++]);
-}
-`;
+  
+  if (params) {
+    return route.replace(/\[([^\]]+)\]/g, (_, key) => {
+      if (!(key in params)) {
+        throw new Error(\`Missing parameter "\${key}" for route "\${route}"\`);
+      }
+      return params[key];
+    });
+  }
+  
+  if (segments.length > 0) {
+    throw new Error(\`Route "\${route}" requires parameters but none were provided\`);
+  }
+  
+  return route;
+}`;
         fs.writeFileSync(jsOutputPath, jsContent, { encoding: "utf8" });
         console.log(
             `Generated ${uniqueRoutes.length} routes at ${dtsOutputPath} and ${jsOutputPath}`
