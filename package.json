@@ -19,8 +19,8 @@
     },
     "scripts": {
         "generate-routes": "node ./bin/cli.js",
-        "build:types": "tsc",
-        "build:js": "tsc --emitDeclarationOnly false --outDir dist",
+        "build:types": "tsc --emitDeclarationOnly",
+        "build:js": "tsc --declaration false --outDir dist",
         "build": "npm run build:types && npm run build:js",
         "prepublishOnly": "npm run build"
     },

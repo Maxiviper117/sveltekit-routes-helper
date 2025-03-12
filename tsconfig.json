@@ -15,6 +15,6 @@
     "checkJs": true,
     "types": ["node"]
   },
-  "include": ["src/**/*.js"],
+  "include": ["src/**/*.ts", "src/**/*.js"],
   "exclude": ["node_modules", "dist", "test"]
 }

@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import type { Plugin } from 'vite';
 
 const routesDir = path.join(process.cwd(), "src", "routes");
 const libDir = path.join(process.cwd(), "src", "lib");
@@ -9,7 +10,7 @@ const libDir = path.join(process.cwd(), "src", "lib");
  * @param {string} folderName - The name of the folder to check
  * @returns {boolean} Whether the folder is a grouping folder
  */
-function isGroupingFolder(folderName) {
+function isGroupingFolder(folderName: string): boolean {
     return folderName.startsWith("(") && folderName.endsWith(")");
 }
 
@@ -23,9 +24,8 @@ function isGroupingFolder(folderName) {
  * @param {string} currentPath - The current path being built
  * @returns {string[]} Array of route strings
  */
-function traverseRoutes(dir, currentPath = "") {
-    /** @type {string[]} */
-    let routes = [];
+function traverseRoutes(dir: string, currentPath = ""): string[] {
+    let routes: string[] = [];
     const entries = fs.readdirSync(dir, { withFileTypes: true });
 
     for (const entry of entries) {
@@ -56,7 +56,6 @@ function traverseRoutes(dir, currentPath = "") {
             const newPath = segment
                 ? path.join(currentPath, segment)
                 : currentPath;
-            /** @type {string[]} */
             const nestedRoutes = traverseRoutes(fullPath, newPath);
             routes = routes.concat(nestedRoutes);
         }
@@ -70,7 +69,7 @@ function traverseRoutes(dir, currentPath = "") {
  * - If a tsconfig.json exists, assumes a TypeScript project and generates appRoutes.ts.
  * - Otherwise, for a JavaScript project it generates appRoutes.d.ts (for types) and appRoutes.js (with JSDoc annotations).
  */
-function generateRoutes() {
+function generateRoutes(): void {
     // Ensure the lib directory exists
     if (!fs.existsSync(libDir)) {
         fs.mkdirSync(libDir, { recursive: true });
@@ -173,9 +172,9 @@ export function routes(route, ...params) {
 
 /**
  * Vite plugin to auto-generate routes on file changes.
- * @returns {import('vite').Plugin} A Vite plugin
+ * @returns {Plugin} A Vite plugin
  */
-function routeGeneratorPlugin() {
+function routeGeneratorPlugin(): Plugin {
     return {
         name: "vite-route-generator",
         /**
