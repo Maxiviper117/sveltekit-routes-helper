@@ -1,8 +1,9 @@
 {
-    "name": "sveltekit-routes-helper",
+    "name": "@maxiviper117/sveltekit-routes-helper",
     "version": "0.2.0",
     "description": "A tool to help generate and manage routes in SvelteKit applications",
     "main": "./dist/index.js",
+    "module": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "exports": {
         ".": {
@@ -12,22 +13,23 @@
     },
     "files": [
         "dist",
-        "bin",
-        "README.md",
-        "LICENSE"
+        "bin"
     ],
     "bin": {
-        "sveltekit-routes-generate": "bin/cli.js"
+        "sveltekit-routes-helper": "bin/cli.js"
     },
     "scripts": {
         "sveltekit-routes-generate": "node ./bin/cli.js",
-        "build": "tsc && chmod +x ./bin/cli.js",
+        "build": "tsc && node -e \"require('fs').chmodSync('./bin/cli.js', '755')\"",
         "prepublishOnly": "npm run build",
         "changeset": "changeset",
         "changeset:add": "changeset add",
         "changeset:version": "changeset version",
         "changeset:publish": "changeset publish",
         "changeset:status": "changeset status"
+    },
+    "publishConfig": {
+        "access": "public"
     },
     "type": "module",
     "repository": {
