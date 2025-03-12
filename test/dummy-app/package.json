@@ -1,0 +1,11 @@
+{
+    "name": "dummy-app",
+    "version": "1.0.0",
+    "scripts": {
+        "generate-routes": "node ../../bin/cli.js"
+    },
+    "devDependencies": {
+        "@sveltejs/kit": "next",
+        "svelte": "^3.0.0"
+    }
+}

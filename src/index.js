@@ -63,6 +63,11 @@ function traverseRoutes(dir, currentPath = "") {
  * - Otherwise, for a JavaScript project it generates appRoutes.d.ts (for types) and appRoutes.js (with JSDoc annotations).
  */
 function generateRoutes() {
+    // Ensure the lib directory exists
+    if (!fs.existsSync(libDir)) {
+        fs.mkdirSync(libDir, { recursive: true });
+    }
+
     const routes = traverseRoutes(routesDir);
     const uniqueRoutes = Array.from(new Set(routes));
     const unionType = uniqueRoutes.map((route) => `"${route}"`).join(" | ");
@@ -165,6 +170,7 @@ function routeGeneratorPlugin() {
     return {
         name: "vite-route-generator",
         configureServer(server) {
+            // This is kept for backward compatibility and robustness
             if (!fs.existsSync(libDir)) {
                 fs.mkdirSync(libDir, { recursive: true });
             }
