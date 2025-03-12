@@ -17,13 +17,11 @@
         "LICENSE"
     ],
     "bin": {
-        "route-generator": "./dist/index.js",
+        "sveltekit-routes-generate": "./dist/cli.js"
     },
     "scripts": {
-        "generate-routes": "node ./bin/cli.js",
-        "build:types": "tsc",
-        "build:js": "tsc --declaration false --outDir dist",
-        "build": "npm run build:types && npm run build:js",
+        "sveltekit-routes-generate": "node ./bin/cli.js",
+        "build": "tsc",
         "prepublishOnly": "npm run build"
     },
     "type": "module",
