@@ -1,9 +1,53 @@
 import fs from "fs";
 import path from "path";
-import type { Plugin } from 'vite';
+import crypto from 'crypto';
+import type { Plugin, PluginOption, ViteDevServer } from "vite";
 
 const routesDir = path.join(process.cwd(), "src", "routes");
 const libDir = path.join(process.cwd(), "src", "lib");
+
+/**
+ * Plugin configuration options
+ */
+export interface RouteGeneratorOptions {
+  /** 
+   * Path to routes directory 
+   * @default "src/routes"
+   */
+  routesDir?: string;
+  
+  /** 
+   * Path to output directory 
+   * @default "src/lib"
+   */
+  outputDir?: string;
+  
+  /** 
+   * Output filename without extension
+   * @default "appRoutes" 
+   */
+  outputFilename?: string;
+  
+  /** 
+   * Routes to exclude (glob patterns)
+   * @default []
+   */
+  exclude?: string[];
+  
+  /** 
+   * Whether to generate route comments with metadata
+   * @default false
+   */
+  includeMetadata?: boolean;
+}
+
+const DEFAULT_OPTIONS: Required<RouteGeneratorOptions> = {
+  routesDir: 'src/routes',
+  outputDir: 'src/lib/utils/routing',
+  outputFilename: 'appRoutes',
+  exclude: [],
+  includeMetadata: false
+};
 
 /**
  * Checks if a folder name is a grouping folder (wrapped in parentheses).
@@ -65,26 +109,43 @@ function traverseRoutes(dir: string, currentPath = ""): string[] {
 
 /**
  * Generate route definitions and helper function files.
- *
- * - If a tsconfig.json exists, assumes a TypeScript project and generates appRoutes.ts.
- * - Otherwise, for a JavaScript project it generates appRoutes.d.ts (for types) and appRoutes.js (with JSDoc annotations).
+ * @param {RouteGeneratorOptions} options - Configuration options
  */
-function generateRoutes(): void {
-    // Ensure the lib directory exists
-    if (!fs.existsSync(libDir)) {
-        fs.mkdirSync(libDir, { recursive: true });
+function generateRoutes(options: RouteGeneratorOptions = {}): void {
+    const mergedOptions = { ...DEFAULT_OPTIONS, ...options };
+    
+    // Convert relative paths to absolute
+    const routesDirectory = mergedOptions.routesDir 
+        ? path.resolve(process.cwd(), mergedOptions.routesDir) 
+        : routesDir;
+    const outputDirectory = mergedOptions.outputDir
+        ? path.resolve(process.cwd(), mergedOptions.outputDir)
+        : libDir;
+    const filename = mergedOptions.outputFilename;
+    
+    // Ensure the output directory exists
+    if (!fs.existsSync(outputDirectory)) {
+        fs.mkdirSync(outputDirectory, { recursive: true });
     }
 
-    const routes = traverseRoutes(routesDir);
+    // Get routes
+    let routes = traverseRoutes(routesDirectory);
+    
+    // Apply exclusion patterns if specified
+    if (mergedOptions.exclude && mergedOptions.exclude.length > 0) {
+        const micromatch = require('micromatch'); // You'll need this dependency
+        routes = routes.filter(route => 
+            !micromatch.isMatch(route, mergedOptions.exclude as string[])
+        );
+    }
+
     const uniqueRoutes = Array.from(new Set(routes));
     const unionType = uniqueRoutes.map((route) => `"${route}"`).join(" | ");
-    const isTypeScript = fs.existsSync(
-        path.join(process.cwd(), "tsconfig.json")
-    );
+    const isTypeScript = fs.existsSync(path.join(process.cwd(), "tsconfig.json"));
 
     if (isTypeScript) {
         // Generate a single TypeScript file with both types and helper function.
-        const outputPath = path.join(libDir, "appRoutes.ts");
+        const outputPath = path.join(outputDirectory, `${filename}.ts`);
         const content = `// This file is auto-generated. Do not edit manually.
 
 /**
@@ -148,8 +209,8 @@ export function routes<T extends AppRoute>(
         console.log(`Generated ${uniqueRoutes.length} routes at ${outputPath}`);
     } else {
         // JavaScript project: generate a .d.ts file and a .js file with JSDoc.
-        const dtsOutputPath = path.join(libDir, "appRoutes.d.ts");
-        const jsOutputPath = path.join(libDir, "appRoutes.js");
+        const dtsOutputPath = path.join(outputDirectory, `${filename}.d.ts`);
+        const jsOutputPath = path.join(outputDirectory, `${filename}.js`);
         const dtsContent = `// This file is auto-generated. Do not edit manually.
 
 /**
@@ -232,33 +293,95 @@ export function routes(route, params) {
 
 /**
  * Vite plugin to auto-generate routes on file changes.
+ * @param {RouteGeneratorOptions} options - Configuration options
  * @returns {Plugin} A Vite plugin
  */
-function routeGeneratorPlugin(): Plugin {
+function routeGeneratorPlugin(options: RouteGeneratorOptions = {}): PluginOption {
+    const mergedOptions = { ...DEFAULT_OPTIONS, ...options };
+    
+    // Convert relative paths to absolute
+    const routesDirectory = mergedOptions.routesDir 
+        ? path.resolve(process.cwd(), mergedOptions.routesDir) 
+        : routesDir;
+    const outputDirectory = mergedOptions.outputDir
+        ? path.resolve(process.cwd(), mergedOptions.outputDir)
+        : libDir;
+    const filename = mergedOptions.outputFilename;
+    
     return {
         name: "vite-route-generator",
-        /**
-         * Configure the development server
-         * @param {import('vite').ViteDevServer} server - The Vite dev server
-         */
-        configureServer(server) {
-            // This is kept for backward compatibility and robustness
-            if (!fs.existsSync(libDir)) {
-                fs.mkdirSync(libDir, { recursive: true });
+        // enforce: "pre",
+        configureServer(server: ViteDevServer) {
+            if (!fs.existsSync(outputDirectory)) {
+                fs.mkdirSync(outputDirectory, { recursive: true });
             }
-            generateRoutes();
-            server.watcher.add(routesDir);
+
+            if (shouldRegenerateRoutes(routesDirectory, outputDirectory, filename)) {
+                console.log(
+                    `Detected changes in ${routesDirectory}. Regenerating routes...`
+                );
+                generateRoutes(options);
+            }
+
+            server.watcher.add(routesDirectory);
             server.watcher.on("change", (changedFile) => {
-                if (changedFile.startsWith(routesDir)) {
+                if (changedFile.startsWith(routesDirectory)) {
                     console.log(
                         `Detected change in ${changedFile}. Regenerating routes...`
                     );
-                    generateRoutes();
+                    if (
+                        shouldRegenerateRoutes(routesDirectory, outputDirectory, filename)
+                    ) {
+                        generateRoutes(options);
+                    }
                     server.ws.send({ type: "full-reload" });
                 }
             });
         },
-    };
+    } satisfies Plugin;
+}
+
+// Add file hash checking to only regenerate when necessary
+function getDirectoryHash(dir: string): string {
+  const files: string[] = [];
+  
+  function traverseDir(currentDir: string) {
+    const entries = fs.readdirSync(currentDir, { withFileTypes: true });
+    for (const entry of entries) {
+      const fullPath = path.join(currentDir, entry.name);
+      if (entry.isFile()) {
+        const content = fs.readFileSync(fullPath);
+        files.push(`${fullPath}:${crypto.createHash('md5').update(content).digest('hex')}`);
+      } else if (entry.isDirectory()) {
+        traverseDir(fullPath);
+      }
+    }
+  }
+  
+  traverseDir(dir);
+  return crypto.createHash('md5').update(files.join('|')).digest('hex');
+}
+
+// Update shouldRegenerateRoutes to accept directory parameters and filename
+function shouldRegenerateRoutes(
+    routesDirectory: string = routesDir, 
+    outputDirectory: string = libDir,
+    filename: string = 'appRoutes'
+): boolean {
+    const cacheFile = path.join(outputDirectory, `.${filename}-routes-cache.json`);
+    const currentHash = getDirectoryHash(routesDirectory);
+    
+    try {
+        if (fs.existsSync(cacheFile)) {
+            const cache = JSON.parse(fs.readFileSync(cacheFile, 'utf-8'));
+            if (cache.hash === currentHash) return false;
+        }
+    } catch (e) {
+        // Cache read error, regenerate to be safe
+    }
+    
+    fs.writeFileSync(cacheFile, JSON.stringify({ hash: currentHash }), 'utf-8');
+    return true;
 }
 
 export { generateRoutes, routeGeneratorPlugin };
