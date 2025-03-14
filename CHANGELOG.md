@@ -1,5 +1,11 @@
 # sveltekit-routes-helper
 
+## 0.4.0
+
+### Minor Changes
+
+- Add plugin config options
+
 ## 0.3.3
 
 ### Patch Changes
