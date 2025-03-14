@@ -42,5 +42,4 @@ coverage/
 # Local files
 .local
 
-dist/index.d.ts
-dist/index.js
+/dist/
