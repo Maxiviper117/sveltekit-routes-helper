@@ -123,7 +123,7 @@ export function routes<T extends AppRoute>(
   
   if (Array.isArray(params)) {
     if (params.length !== segments.length) {
-      throw new Error(\`Expected \\\${segments.length} parameter\\\${segments.length !== 1 ? 's' : ''} for route "\\\${route}", but got \\\${params.length}.\`);
+      throw new Error(\`Expected \${segments.length} parameter\${segments.length !== 1 ? 's' : ''} for route "\${route}", but got \${params.length}.\`);
     }
     let index = 0;
     return route.replace(/\\[([^\\]]+)\\]/g, () => params[index++]);
@@ -132,14 +132,14 @@ export function routes<T extends AppRoute>(
   if (params) {
     return route.replace(/\\[([^\\]]+)\\]/g, (_, key) => {
       if (!(key in params)) {
-        throw new Error(\`Missing parameter "\\\${key}" for route "\\\${route}"\`);
+        throw new Error(\`Missing parameter "\${key}" for route "\${route}"\`);
       }
       return (params as Record<string, string>)[key];
     });
   }
   
   if (segments.length > 0) {
-    throw new Error(\`Route "\\\${route}" requires parameters but none were provided\`);
+    throw new Error(\`Route "\${route}" requires parameters but none were provided\`);
   }
   
   return route;
@@ -198,18 +198,18 @@ export function routes<T extends AppRoute>(route: T, params?: string[] | RoutePa
  * @throws {Error} Will throw an error if parameters are missing or invalid.
  */
 export function routes(route, params) {
-  const segments = route.match(/\[([^\]]+)\]/g) || [];
+  const segments = route.match(/\\[([^\\]]+)\\]/g) || [];
   
   if (Array.isArray(params)) {
     if (params.length !== segments.length) {
       throw new Error(\`Expected \${segments.length} parameter\${segments.length !== 1 ? 's' : ''} for route "\${route}", but got \${params.length}.\`);
     }
     let index = 0;
-    return route.replace(/\[([^\]]+)\]/g, () => params[index++]);
+    return route.replace(/\\[([^\\]]+)\\]/g, () => params[index++]);
   }
   
   if (params) {
-    return route.replace(/\[([^\]]+)\]/g, (_, key) => {
+    return route.replace(/\\[([^\\]]+)\\]/g, (_, key) => {
       if (!(key in params)) {
         throw new Error(\`Missing parameter "\${key}" for route "\${route}"\`);
       }

@@ -1,6 +1,6 @@
 {
     "name": "sveltekit-routes-helper",
-    "version": "0.3.0",
+    "version": "0.3.2",
     "description": "A tool to help generate and manage routes in SvelteKit applications",
     "main": "./dist/index.js",
     "module": "./dist/index.js",

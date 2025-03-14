@@ -1,5 +1,17 @@
 # sveltekit-routes-helper
 
+## 0.3.2
+
+### Patch Changes
+
+- fix: string escaping issues
+
+## 0.3.1
+
+### Patch Changes
+
+- Fix: regex issues
+
 ## 0.3.0
 
 ### Minor Changes
