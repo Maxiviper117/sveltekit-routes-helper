@@ -1,159 +1,149 @@
 # SvelteKit Routes Helper
 
-SvelteKit Routes Helper is an npm package that automatically generates type-safe route definitions and a URL helper function for your SvelteKit projects. It supports both TypeScript and JavaScript projects and integrates seamlessly with Vite's HMR for a smooth development experience.
+A Vite plugin that automatically generates typed route utilities for SvelteKit applications. It creates both the route type definitions and a helper function, providing type-safe navigation with proper parameter inference, validation, and autocompletion. The plugin continuously monitors your application's route structure and keeps your route helpers in sync with zero manual maintenance.
 
 ## Features
 
-- **Automatic Route Generation:** Scans your `src/routes` directory and builds a union type of all routes.
-- **Type-Safe URL Helper:** Generates a helper function that dynamically replaces URL parameters in a type-safe manner.
-- **Dual Support:**  
-  - **TypeScript Projects:** Generates a single `.ts` file containing both type definitions and the helper function.
-  - **JavaScript Projects:** Generates a `.d.ts` file for type declarations and a `.js` file with JSDoc annotations.
-- **Vite HMR Integration:** Automatically regenerates route files on changes and triggers full reloads via Vite.
-- **CLI Access:** Provides a CLI command to manually trigger route generation from an npm script.
+- Automatically generates a type-safe routes helper file
+- Updates when routes are added, removed, or changed 
+- Works with both JavaScript and TypeScript
+- Handles SvelteKit's file-based routing system including:
+  - Dynamic parameters (e.g., `[id]`)
+  - Nested routes
+  - Grouping folders (e.g., `(group)`)
+- Performance optimized with caching to avoid unnecessary regeneration
 
 ## Installation
 
-Install the package via npm or yarn:
-
 ```bash
-npm install sveltekit-routes-helper --save-dev
-```
+# npm
+npm install -D sveltekit-routes-helper
 
-or
+# pnpm
+pnpm add -D sveltekit-routes-helper
 
-```bash
-yarn add sveltekit-routes-helper --dev
-```
-
-or prefer using pnpm:
-
-```bash
-pnpm add -D sveltekit-routes-helper 
+# yarn
+yarn add -D sveltekit-routes-helper
 ```
 
 ## Usage
 
-### As a Vite Plugin
+### 1. Add the plugin to your vite.config.js/ts
 
-To integrate SvelteKit Routes Helper with Vite, add it to your `vite.config.js` file:
-
-```js
-// vite.config.js
+```typescript
+// vite.config.ts
+import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vite';
 import { routeGeneratorPlugin } from 'sveltekit-routes-helper';
 
 export default defineConfig({
-  plugins: [routeGeneratorPlugin()],
+  plugins: [
+    sveltekit(),
+    routeGeneratorPlugin({
+      // Optional configuration (see Configuration section)
+    }),
+  ]
 });
 ```
 
-When running the Vite development server, the plugin will:
+### 2. Use the generated routes helper in your SvelteKit app
 
-- Generate the appropriate route files on startup.
-- Watch the `src/routes` directory for changes.
-- Regenerate route files and trigger a full reload when changes are detected.
+```html
+<script lang="ts">
+  import { routes } from '$lib/utils/routing/appRoutes';
 
-### Manual Route Generation via CLI
+  // Simple route with no parameters
+  const homeUrl = routes('/');
 
-You can also manually trigger route generation with the provided CLI command. In your project's `package.json`, add a script:
+  // Route with named parameters (object style)
+  const userProfileUrl = routes('/user/[id]', { id: '123' });
+
+  // Route with positional parameters (array style)
+  const blogPostUrl = routes('/blog/[category]/[slug]', ['tech', 'sveltekit-rocks']);
+</script>
+
+<a href={homeUrl}>Home</a>
+<a href={userProfileUrl}>User Profile</a>
+<a href={blogPostUrl}>Blog Post</a>
+```
+
+## Type Safety
+
+The generated helper is fully typed, so you'll get:
+
+- Autocomplete for available routes
+- Type checking for route parameters
+- Errors if route parameters are missing or incorrect
+
+## Configuration
+
+You can customize the behavior by passing options to the plugin:
+
+```typescript
+routeGeneratorPlugin({
+  // Path to routes directory 
+  routesDir: 'src/routes',
+
+  // Output directory for generated files
+  outputDir: 'src/lib/utils/routing',
+
+  // Name of output file (without extension)
+  outputFilename: 'appRoutes',
+
+  // Routes to exclude (glob patterns)
+  exclude: ['**/api/**', '/admin/**'],
+
+  // Whether to include route metadata as comments
+  includeMetadata: false,
+})
+```
+
+### Options
+
+| Option            | Type       | Default                   | Description                                |
+| ----------------- | ---------- | ------------------------- | ------------------------------------------ |
+| `routesDir`       | `string`   | `'src/routes'`            | Path to routes directory                   |
+| `outputDir`       | `string`   | `'src/lib/utils/routing'` | Path to output directory                   |
+| `outputFilename`  | `string`   | `'appRoutes'`             | Name of output file (without extension)    |
+| `exclude`         | `string[]` | `[]`                      | Routes to exclude (glob patterns)          |
+| `includeMetadata` | `boolean`  | `false`                   | Whether to include route metadata comments |
+
+## CLI Usage
+
+You can also generate routes via the command line:
+
+```bash
+npx sveltekit-routes generate
+```
+
+Or add it as a script to your package.json:
 
 ```json
 {
   "scripts": {
-    "generate-routes": "sveltekit-routes-helper"
+    "generate-routes": "sveltekit-routes generate"
   }
 }
 ```
 
-Then run:
+## Development
 
 ```bash
-npm run generate-routes
+# Install dependencies
+pnpm install
+
+# Build the package
+pnpm build
+
+# Run tests
+pnpm test
+
+# Test in the dummy app
+cd test/dummy-app
+pnpm dev
 ```
-
-This will generate the route files according to your project type:
-- For TypeScript projects: a single `appRoutes.ts` file.
-- For JavaScript projects: both an `appRoutes.d.ts` file and an `appRoutes.js` file with JSDoc annotations.
-
-### Using the `routes` Helper Function
-
-The `routes` helper function allows you to generate URLs by replacing dynamic segments in the route with provided parameters. You can provide parameters either as an array of values (positional) or as an object with named parameters.
-
-#### TypeScript Example
-
-```typescript
-import { routes } from '$lib/appRoutes';
-
-// Static routes (no parameters)
-const adminUrl = routes('/admin/'); // Output: "/admin/"
-
-// Using array parameters (positional)
-const userUrl = routes('/user/[id]', ['123']); // Output: "/user/123"
-
-// Using object parameters (named)
-const userUrl2 = routes('/user/[id]', { id: '123' }); // Output: "/user/123"
-
-// Multiple parameters
-const postUrl = routes('/user/[userId]/post/[postId]', ['123', '456']); // Output: "/user/123/post/456"
-// Or with named parameters
-const postUrl2 = routes('/user/[userId]/post/[postId]', { 
-  userId: '123', 
-  postId: '456' 
-}); // Output: "/user/123/post/456"
-```
-
-The function will throw an error if:
-- The number of array parameters doesn't match the number of dynamic segments
-- A required named parameter is missing
-- Parameters are required but none were provided
-
-This is the routes helper signature:
-
-```typescript
-function routes<T extends AppRoute>(
-  route: T,
-  params?: string[] | RouteParamsObject<T>
-): string;
-```
-
-Where `RouteParamsObject<T>` is automatically generated based on the parameter names in your route.
-
-## API Overview
-
-### `generateRoutes`
-
-Scans the `src/routes` directory and generates route files in `src/lib` based on the project type.
-
-- **TypeScript Projects:** Creates `appRoutes.ts` with type definitions and a URL helper.
-- **JavaScript Projects:** Creates `appRoutes.d.ts` for types and `appRoutes.js` (with JSDoc) for the URL helper.
-
-### `routeGeneratorPlugin`
-
-Returns a Vite plugin that watches your routes directory for file changes, regenerates route files on the fly, and triggers HMR updates.
-
-## Project Structure Example
-
-A typical project using SvelteKit Routes Helper may look like this:
-
-```
-my-sveltekit-app/
-├── src/
-│   ├── routes/
-│   │   └── ... (your route files)
-│   └── lib/
-│       ├── appRoutes.ts  // For TS projects
-│       ├── appRoutes.js  // For JS projects
-│       └── appRoutes.d.ts // For JS projects
-├── vite.config.js
-└── package.json
-```
-
-## Contributing
-
-Contributions are welcome! If you find an issue or have an idea for improvement, please open an issue or submit a pull request.
 
 ## License
 
-This project is licensed under the MIT License.
+MIT
 
