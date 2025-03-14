@@ -78,44 +78,46 @@ This will generate the route files according to your project type:
 
 ### Using the `routes` Helper Function
 
-The `routes` helper function allows you to generate URLs by replacing dynamic segments in the route with provided parameters. This function is type-safe and ensures that the number of parameters matches the number of dynamic segments in the route.
+The `routes` helper function allows you to generate URLs by replacing dynamic segments in the route with provided parameters. You can provide parameters either as an array of values (positional) or as an object with named parameters.
 
 #### TypeScript Example
 
 ```typescript
-import { routes } from 'src/lib/appRoutes';
-const userUrl = routes('/admin/user/'); // type safe
-console.log(userUrl); // Output: "/admin/user/"
+import { routes } from '$lib/appRoutes';
+
+// Static routes (no parameters)
+const adminUrl = routes('/admin/'); // Output: "/admin/"
+
+// Using array parameters (positional)
+const userUrl = routes('/user/[id]', ['123']); // Output: "/user/123"
+
+// Using object parameters (named)
+const userUrl2 = routes('/user/[id]', { id: '123' }); // Output: "/user/123"
+
+// Multiple parameters
+const postUrl = routes('/user/[userId]/post/[postId]', ['123', '456']); // Output: "/user/123/post/456"
+// Or with named parameters
+const postUrl2 = routes('/user/[userId]/post/[postId]', { 
+  userId: '123', 
+  postId: '456' 
+}); // Output: "/user/123/post/456"
 ```
 
-With slug:
+The function will throw an error if:
+- The number of array parameters doesn't match the number of dynamic segments
+- A required named parameter is missing
+- Parameters are required but none were provided
+
+This is the routes helper signature:
 
 ```typescript
-import { routes } from 'src/lib/appRoutes';
-
-const userId = '123';
-const userUrl = routes('/admin/user/:id', userid); // type safe
-console.log(userUrl); // Output: "/admin/user/123"
+function routes<T extends AppRoute>(
+  route: T,
+  params?: string[] | RouteParamsObject<T>
+): string;
 ```
 
-With multiple slugs:
-
-```typescript
-import { routes } from 'src/lib/appRoutes';
-
-const userId = '123';
-const postId = '456';
-const userPostUrl = routes('/admin/user/:id/post/:postId', userId, postId); // type safe
-console.log(userPostUrl); // Output: "/admin/user/123/post/456"
-```
-
-This is th routes helper signature:
-
-```typescript
-function routes(route: string, ...params: string[]): string;
-```
-
-The first argument is the `routes` route name which is type safe and the second argument is a rest parameter that accepts any number of string arguments. The function will return a string with the route name and the parameters replaced in the route. The number of parameters must match the number of dynamic segments/slugs in the route.
+Where `RouteParamsObject<T>` is automatically generated based on the parameter names in your route.
 
 ## API Overview
 

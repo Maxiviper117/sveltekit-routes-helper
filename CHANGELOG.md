@@ -1,5 +1,11 @@
 # sveltekit-routes-helper
 
+## 0.3.3
+
+### Patch Changes
+
+- Update Docs for helper method
+
 ## 0.3.2
 
 ### Patch Changes
