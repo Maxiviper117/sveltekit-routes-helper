@@ -32,11 +32,3 @@ export interface RouteGeneratorOptions {
      */
     includeMetadata?: boolean;
 }
-
-export const DEFAULT_OPTIONS: Required<RouteGeneratorOptions> = {
-    routesDir: "src/routes",
-    outputDir: "src/lib/utils/routing",
-    outputFilename: "appRoutes",
-    exclude: [],
-    includeMetadata: false,
-};

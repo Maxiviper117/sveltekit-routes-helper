@@ -1,0 +1,10 @@
+import { generateRoutes } from "./generators/routes.js";
+import { routeGeneratorPlugin } from "./plugins/vite.js";
+import { routes } from "./runtime.js";
+
+export {
+    generateRoutes,
+    routeGeneratorPlugin,
+    routes
+};
+export default routeGeneratorPlugin;
