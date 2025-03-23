@@ -41,3 +41,4 @@ coverage/
 
 # Local files
 .local
+.svelte-kit/
