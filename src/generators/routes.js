@@ -4,117 +4,86 @@ import { traverseRoutes } from "../utils/routing/index.js";
 import { DEFAULT_OPTIONS } from "../config.js";
 
 /**
- * Generate route definitions and helper function files.
+ * Generate route type definitions
  * @param {import('../types.js').RouteGeneratorOptions} options - Configuration options
  */
 export function generateRoutes(options = {}) {
-    const mergedOptions = { ...DEFAULT_OPTIONS, ...options };
+    try {
+        console.log('Starting route generation with options:', options);
+        const mergedOptions = { ...DEFAULT_OPTIONS, ...options };
+        console.log('Merged options:', mergedOptions);
 
-    // Convert relative paths to absolute
-    const routesDirectory = mergedOptions.routesDir
-        ? path.resolve(process.cwd(), mergedOptions.routesDir)
-        : path.join(process.cwd(), "src", "routes");
-    const outputDirectory = mergedOptions.outputDir
-        ? path.resolve(process.cwd(), mergedOptions.outputDir)
-        : path.join(process.cwd(), "src", "lib", "utils", "routing");
-    const filename = mergedOptions.outputFilename;
+        // Convert relative paths to absolute
+        const routesDirectory = mergedOptions.routesDir
+            ? path.resolve(process.cwd(), mergedOptions.routesDir)
+            : path.join(process.cwd(), "src", "routes");
 
-    // Ensure the output directory exists
-    if (!fs.existsSync(outputDirectory)) {
-        fs.mkdirSync(outputDirectory, { recursive: true });
-    }
+        console.log('Looking for routes in directory:', routesDirectory);
+        
+        // Check if routes directory exists
+        if (!fs.existsSync(routesDirectory)) {
+            console.error(`Routes directory does not exist: ${routesDirectory}`);
+            return;
+        }
 
-    // Get routes
-    let routes = traverseRoutes(routesDirectory);
+        // Get routes
+        console.log('Traversing routes...');
+        let routes = traverseRoutes(routesDirectory);
+        console.log('Found routes:', routes);
 
-    // Apply exclusion patterns if specified
-    if (mergedOptions.exclude && mergedOptions.exclude.length > 0) {
-        const micromatch = require("micromatch");
-        routes = routes.filter(
-            (route) =>
-                !micromatch.isMatch(route, mergedOptions.exclude)
-        );
-    }
+        // Apply exclusion patterns if specified
+        if (mergedOptions.exclude && mergedOptions.exclude.length > 0) {
+            try {
+                const micromatch = require("micromatch");
+                routes = routes.filter(
+                    (route) => !micromatch.isMatch(route, mergedOptions.exclude)
+                );
+                console.log('Routes after exclusion:', routes);
+            } catch (err) {
+                console.error('Error applying exclusions:', err);
+                // Continue without exclusions if micromatch fails
+            }
+        }
 
-    const uniqueRoutes = Array.from(new Set(routes));
-    const unionType = uniqueRoutes.map((route) => `"${route}"`).join(" | ");
-    const isTypeScript = fs.existsSync(
-        path.join(process.cwd(), "tsconfig.json")
-    );
+        const uniqueRoutes = Array.from(new Set(routes)).sort();
+        const unionType = uniqueRoutes.map((route) => `"${route}"`).join(" | ");
 
-    if (isTypeScript) {
-        // For TypeScript projects, generate only type definitions
-        const outputPath = path.join(outputDirectory, `${filename}.ts`);
-        const content = `// This file is auto-generated. Do not edit manually.
-import { routes as baseRoutes } from 'sveltekit-routes-helper';
+        // Create src directory if it doesn't exist
+        const srcDir = path.join(process.cwd(), "src");
+        console.log('Ensuring src directory exists:', srcDir);
+        if (!fs.existsSync(srcDir)) {
+            fs.mkdirSync(srcDir, { recursive: true });
+            console.log('Created src directory');
+        }
 
-/**
- * A union type of all application routes.
- */
-export type AppRoute = ${unionType};
+        const routesDtsPath = path.join(srcDir, "routes.d.ts");
+        console.log('Writing routes.d.ts to:', routesDtsPath);
 
-/**
- * Extract parameter names from a route string
- */
-type ExtractRouteParams<T extends string> = T extends \`\${string}[\${infer Param}]\${infer Rest}\`
-  ? Param | ExtractRouteParams<Rest>
-  : never;
-
-/**
- * Convert route parameters to an object type
- */
-type RouteParamsObject<T extends string> = {
-  [K in ExtractRouteParams<T>]: string;
-};
-
-/**
- * Generate a URL by replacing dynamic segments in the given route with provided parameters.
- */
-export declare function routes(route: AppRoute, params?: string[] | RouteParamsObject<AppRoute>): string;
-
-// Re-export the implementation
-export { baseRoutes as routes };`;
-        fs.writeFileSync(outputPath, content, { encoding: "utf8" });
-        console.log(
-            `Generated ${uniqueRoutes.length} route types at ${outputPath}`
-        );
-    } else {
-        // For JavaScript projects, generate type definitions and JSDoc
-        const dtsOutputPath = path.join(outputDirectory, `${filename}.d.ts`);
-        const jsOutputPath = path.join(outputDirectory, `${filename}.js`);
-
-        const dtsContent = `// This file is auto-generated. Do not edit manually.
-export type AppRoute = ${unionType};
-
-/**
- * Generate a URL by replacing dynamic segments in the given route with provided parameters.
- * 
- * @param {AppRoute} route - The route pattern
- * @param {string[] | Record<string, string>} [params] - Parameters to inject
- * @returns {string} The processed route with parameters applied
- */
-export function routes(route: AppRoute, params?: string[] | Record<string, string>): string;`;
-
-        const jsContent = `// This file is auto-generated. Do not edit manually.
-import { routes } from 'sveltekit-routes-helper';
-
-/**
- * @typedef {${unionType}} AppRoute
+        const routesDtsContent = `/**
+ * Auto-generated SvelteKit route type definitions
+ * DO NOT EDIT - This file is auto-generated
+ * @packageDocumentation
  */
 
 /**
- * Generate a URL by replacing dynamic segments in the given route with provided parameters.
- * 
- * @param {AppRoute} route - The route pattern
- * @param {string[] | Record<string, string>} [params] - Parameters to inject
- * @returns {string} The processed route with parameters applied
+ * Represents all valid routes in the SvelteKit application
+ * @example
+ * // Valid routes:
+${uniqueRoutes.map(route => ` * - "${route}"`).join('\n')}
  */
-export { routes };`;
+declare global {
+    /** All valid application routes */
+    type AppRoute = ${unionType};
+}
 
-        fs.writeFileSync(dtsOutputPath, dtsContent, { encoding: "utf8" });
-        fs.writeFileSync(jsOutputPath, jsContent, { encoding: "utf8" });
-        console.log(
-            `Generated ${uniqueRoutes.length} route types at ${dtsOutputPath} and ${jsOutputPath}`
-        );
+// Ensure this is treated as a module
+export {};
+`;
+
+        fs.writeFileSync(routesDtsPath, routesDtsContent, 'utf-8');
+        console.log(`Successfully generated route type definitions at ${routesDtsPath}`);
+    } catch (error) {
+        console.error('Error generating routes:', error);
+        throw error; // Re-throw to ensure the error is not silently swallowed
     }
 }

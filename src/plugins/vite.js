@@ -23,43 +23,43 @@ export function routeGeneratorPlugin(options = {}) {
 
     return {
         name: "vite-route-generator",
-        // enforce: "pre",
+        enforce: "pre",
+        
+        buildStart() {
+            console.log('Vite plugin: Running initial route generation...');
+            generateRoutes(options);
+        },
+        
         configureServer(server) {
+            console.log('Vite plugin: Setting up dev server...');
+            
             if (!fs.existsSync(outputDirectory)) {
                 fs.mkdirSync(outputDirectory, { recursive: true });
             }
 
-            if (
-                shouldRegenerateRoutes(
-                    routesDirectory,
-                    outputDirectory,
-                    filename
-                )
-            ) {
-                console.log(
-                    `Detected changes in ${routesDirectory}. Regenerating routes...`
-                );
+            // Initial generation
+            if (shouldRegenerateRoutes(routesDirectory, outputDirectory, filename)) {
+                console.log('Vite plugin: Generating routes during server start...');
                 generateRoutes(options);
             }
 
             server.watcher.add(routesDirectory);
             server.watcher.on("change", (changedFile) => {
                 if (changedFile.startsWith(routesDirectory)) {
-                    console.log(
-                        `Detected change in ${changedFile}. Regenerating routes...`
-                    );
-                    if (
-                        shouldRegenerateRoutes(
-                            routesDirectory,
-                            outputDirectory,
-                            filename
-                        )
-                    ) {
+                    console.log(`Vite plugin: Detected change in ${changedFile}`);
+                    if (shouldRegenerateRoutes(routesDirectory, outputDirectory, filename)) {
+                        console.log('Vite plugin: Regenerating routes due to file change...');
                         generateRoutes(options);
                     }
                     server.ws.send({ type: "full-reload" });
                 }
             });
         },
+        
+        // Also generate routes during build
+        async closeBundle() {
+            console.log('Vite plugin: Generating routes during build...');
+            generateRoutes(options);
+        }
     };
 }
