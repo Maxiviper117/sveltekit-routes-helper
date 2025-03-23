@@ -9,6 +9,10 @@
         ".": {
             "import": "./dist/index.js",
             "types": "./dist/index.d.ts"
+        },
+        "./runtime": {
+            "import": "./dist/runtime.js",
+            "types": "./dist/runtime.d.ts"
         }
     },
     "files": [
@@ -20,7 +24,8 @@
     },
     "scripts": {
         "sveltekit-routes-generate": "node ./bin/cli.js",
-        "build": "tsc && node -e \"require('fs').chmodSync('./bin/cli.js', '755')\"",
+        "build": "node scripts/build.js && tsc --emitDeclarationOnly",
+        "postbuild": "echo 'Build complete'",
         "prepublishOnly": "npm run build",
         "changeset": "changeset",
         "changeset:add": "changeset add",

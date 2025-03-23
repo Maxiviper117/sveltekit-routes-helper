@@ -85,10 +85,10 @@ routeGeneratorPlugin({
   routesDir: 'src/routes',
 
   // Output directory for generated files
-  outputDir: 'src/lib/utils/routing',
+  outputDir: 'src',
 
   // Name of output file (without extension)
-  outputFilename: 'appRoutes',
+  outputFilename: 'routes.d',
 
   // Routes to exclude (glob patterns)
   exclude: ['**/api/**', '/admin/**'],
@@ -100,13 +100,13 @@ routeGeneratorPlugin({
 
 ### Options
 
-| Option            | Type       | Default                   | Description                                |
-| ----------------- | ---------- | ------------------------- | ------------------------------------------ |
-| `routesDir`       | `string`   | `'src/routes'`            | Path to routes directory                   |
-| `outputDir`       | `string`   | `'src/lib/utils/routing'` | Path to output directory                   |
-| `outputFilename`  | `string`   | `'appRoutes'`             | Name of output file (without extension)    |
-| `exclude`         | `string[]` | `[]`                      | Routes to exclude (glob patterns)          |
-| `includeMetadata` | `boolean`  | `false`                   | Whether to include route metadata comments |
+| Option            | Type       | Default          | Description                                |
+| ----------------- | ---------- | ---------------- | ------------------------------------------ |
+| `routesDir`       | `string`   | `'src/routes'`   | Path to routes directory                   |
+| `outputDir`       | `string`   | `'src'`         | Path to output directory                   |
+| `outputFilename`  | `string`   | `'routes.d'`    | Name of output file (without extension)    |
+| `exclude`         | `string[]` | `[]`            | Routes to exclude (glob patterns)          |
+| `includeMetadata` | `boolean`  | `false`         | Whether to include route metadata comments |
 
 ## CLI Usage
 
