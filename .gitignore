@@ -41,5 +41,4 @@ coverage/
 
 # Local files
 .local
-/sveltekit
-test/dummy-app/.svelte-kit/
+.svelte-kit/
