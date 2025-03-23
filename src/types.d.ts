@@ -10,13 +10,13 @@ export interface RouteGeneratorOptions {
 
     /**
      * Path to output directory
-     * @default "src/lib"
+     * @default "src"
      */
     outputDir?: string;
 
     /**
      * Output filename without extension
-     * @default "appRoutes"
+     * @default "routes.d"
      */
     outputFilename?: string;
 

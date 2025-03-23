@@ -18,8 +18,7 @@ export function routeGeneratorPlugin(options = {}) {
         : path.join(process.cwd(), "src", "routes");
     const outputDirectory = mergedOptions.outputDir
         ? path.resolve(process.cwd(), mergedOptions.outputDir)
-        : path.join(process.cwd(), "src", "lib");
-    const filename = mergedOptions.outputFilename;
+        : path.join(process.cwd(), "src");
 
     return {
         name: "vite-route-generator",
@@ -38,7 +37,7 @@ export function routeGeneratorPlugin(options = {}) {
             }
 
             // Initial generation
-            if (shouldRegenerateRoutes(routesDirectory, outputDirectory, filename)) {
+            if (shouldRegenerateRoutes(routesDirectory, outputDirectory)) {
                 console.log('Vite plugin: Generating routes during server start...');
                 generateRoutes(options);
             }
@@ -47,7 +46,7 @@ export function routeGeneratorPlugin(options = {}) {
             server.watcher.on("change", (changedFile) => {
                 if (changedFile.startsWith(routesDirectory)) {
                     console.log(`Vite plugin: Detected change in ${changedFile}`);
-                    if (shouldRegenerateRoutes(routesDirectory, outputDirectory, filename)) {
+                    if (shouldRegenerateRoutes(routesDirectory, outputDirectory)) {
                         console.log('Vite plugin: Regenerating routes due to file change...');
                         generateRoutes(options);
                     }

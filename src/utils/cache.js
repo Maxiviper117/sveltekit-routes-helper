@@ -5,11 +5,10 @@ import path from "path";
  * Check if routes should be regenerated based on file changes
  * @param {string} routesDir - Directory containing routes
  * @param {string} outputDir - Directory where routes file is generated
- * @param {string} filename - Name of the generated routes file
  * @returns {boolean} True if routes should be regenerated
  */
-export function shouldRegenerateRoutes(routesDir, outputDir, filename) {
-    const outputPath = path.join(outputDir, `${filename}.js`);
+export function shouldRegenerateRoutes(routesDir, outputDir) {
+    const outputPath = path.join(outputDir, 'routes.d.ts');
     
     if (!fs.existsSync(outputPath)) {
         return true;

@@ -4,8 +4,8 @@
  */
 export const DEFAULT_OPTIONS = {
     routesDir: "src/routes",
-    outputDir: "src/lib",
-    outputFilename: "appRoutes",
+    outputDir: "src",
+    outputFilename: "routes.d",
     exclude: [],
     includeMetadata: false
 };
